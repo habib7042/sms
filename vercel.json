@@ -11,8 +11,5 @@
     "env": {
       "PRISMA_GENERATE_SKIP_CACHE": "true"
     }
-  },
-  "env": {
-    "DATABASE_URL": "@database_url"
   }
 }
