@@ -13,13 +13,28 @@ export default function Home() {
   const [adminPassword, setAdminPassword] = useState('')
   const [loginError, setLoginError] = useState('')
 
-  const handleAdminLogin = (e: React.FormEvent) => {
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Simple password check - in real app, this would be server-side
-    if (adminPassword === 'admin123') {
-      window.location.href = '/admin'
-    } else {
-      setLoginError('Invalid password')
+    
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: adminPassword }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        window.location.href = '/admin'
+      } else {
+        setLoginError(data.error || 'Invalid password')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      setLoginError('Network error. Please try again.')
     }
   }
 
