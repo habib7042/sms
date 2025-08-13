@@ -10,15 +10,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { LogOut } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function AdminDashboard() {
+  const router = useRouter()
   const [students, setStudents] = useState([])
   const [classes, setClasses] = useState([])
   const [subjects, setSubjects] = useState([])
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(true)
+  const [authLoading, setAuthLoading] = useState(true)
   const [message, setMessage] = useState({ type: '', text: '' })
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   // Form states
   const [newStudent, setNewStudent] = useState({
@@ -62,8 +67,42 @@ export default function AdminDashboard() {
   })
 
   useEffect(() => {
-    fetchData()
+    checkAuth()
   }, [])
+
+  const checkAuth = async () => {
+    try {
+      const response = await fetch('/api/admin/auth')
+      const data = await response.json()
+      
+      if (data.authenticated) {
+        setIsAuthenticated(true)
+        fetchData()
+      } else {
+        router.push('/')
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error)
+      router.push('/')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/logout', { method: 'POST' })
+      router.push('/')
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchData()
+    }
+  }, [isAuthenticated])
 
   const fetchData = async () => {
     try {
@@ -298,7 +337,7 @@ export default function AdminDashboard() {
     })
   }
 
-  if (loading) {
+  if (authLoading || loading) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>
   }
 
@@ -307,9 +346,15 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">এডমিন প্যানেল</h1>
-          <Link href="/">
-            <Button variant="outline">হোম পেজ</Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/">
+              <Button variant="outline">হোম পেজ</Button>
+            </Link>
+            <Button onClick={handleLogout} variant="destructive" className="flex items-center gap-2">
+              <LogOut className="w-4 h-4" />
+              লগআউট
+            </Button>
+          </div>
         </div>
 
         {message.text && (

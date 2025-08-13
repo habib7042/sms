@@ -37,8 +37,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Return success response
-    return NextResponse.json({
+    // Create response with session cookie
+    const response = NextResponse.json({
       success: true,
       message: 'Login successful',
       admin: {
@@ -46,6 +46,20 @@ export async function POST(request: NextRequest) {
         username: admin.username
       }
     });
+
+    // Set session cookie
+    response.cookies.set('admin_session', JSON.stringify({
+      id: admin.id,
+      username: admin.username,
+      timestamp: Date.now()
+    }), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 // 24 hours
+    });
+
+    return response;
 
   } catch (error) {
     console.error('Admin login error:', error);
