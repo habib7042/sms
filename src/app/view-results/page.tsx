@@ -144,64 +144,225 @@ export default function ViewResultsPage() {
     }
   };
 
-  const downloadResult = () => {
+  const downloadResult = async (event?: React.MouseEvent<HTMLButtonElement>) => {
     if (!student) return;
     
     const element = document.getElementById('result-card');
-    if (!element) return;
+    if (!element) {
+      setError('ফলাফলের কার্ড পাওয়া যায়নি');
+      return;
+    }
     
-    // Create a temporary container with proper styling
-    const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px';
-    tempContainer.style.width = '800px';
-    tempContainer.style.backgroundColor = '#ffffff';
-    tempContainer.style.fontFamily = 'Arial, sans-serif';
-    tempContainer.style.padding = '20px';
-    
-    // Clone the result card
-    const clonedCard = element.cloneNode(true) as HTMLElement;
-    tempContainer.appendChild(clonedCard);
-    
-    // Add temporary styles to fix oklch color issue
-    const styleElement = document.createElement('style');
-    styleElement.textContent = `
-      .bg-primary { background-color: #3b82f6 !important; }
-      .text-primary-foreground { color: #ffffff !important; }
-      .bg-secondary { background-color: #f1f5f9 !important; }
-      .text-secondary-foreground { color: #0f172a !important; }
-      .bg-muted { background-color: #f1f5f9 !important; }
-      .text-muted-foreground { color: #64748b !important; }
-      .border { border-color: #e2e8f0 !important; }
-    `;
-    tempContainer.appendChild(styleElement);
-    
-    document.body.appendChild(tempContainer);
-    
-    // Dynamically import html2canvas
-    import('html2canvas').then((html2canvas) => {
-      return html2canvas.default(tempContainer, {
+    try {
+      // Show loading state
+      const originalText = event?.currentTarget?.textContent || '';
+      if (event?.currentTarget) {
+        event.currentTarget.textContent = 'প্রস্তুত হচ্ছে...';
+        event.currentTarget.disabled = true;
+      }
+      
+      // Create a temporary container with proper styling
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.width = '800px';
+      tempContainer.style.backgroundColor = '#ffffff';
+      tempContainer.style.fontFamily = 'Arial, sans-serif';
+      tempContainer.style.padding = '20px';
+      tempContainer.style.boxSizing = 'border-box';
+      
+      // Clone the result card
+      const clonedCard = element.cloneNode(true) as HTMLElement;
+      
+      // Remove interactive elements and animations that might cause issues
+      const interactiveElements = clonedCard.querySelectorAll('button, .tabs, .tab-list, input, select');
+      interactiveElements.forEach(el => el.remove());
+      
+      // Remove animation classes
+      const animatedElements = clonedCard.querySelectorAll('[class*="animate-"], [class*="motion-"]');
+      animatedElements.forEach(el => {
+        el.className = el.className.replace(/animate-\w+|motion-\w+/g, '');
+      });
+      
+      // Fix background colors and text colors
+      const styleFixes = `
+        * {
+          box-sizing: border-box !important;
+        }
+        .bg-primary, .bg-blue-600, .bg-purple-600 {
+          background-color: #3b82f6 !important;
+          color: #ffffff !important;
+        }
+        .bg-white\\/10 {
+          background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        .text-white {
+          color: #ffffff !important;
+        }
+        .text-blue-200, .text-blue-100 {
+          color: #e0e7ff !important;
+        }
+        .border-white\\/20 {
+          border-color: rgba(255, 255, 255, 0.2) !important;
+        }
+        .bg-gradient-to-r {
+          background: linear-gradient(to right, var(--tw-gradient-stops)) !important;
+        }
+        .from-purple-600 {
+          --tw-gradient-from: #9333ea !important;
+        }
+        .to-blue-600 {
+          --tw-gradient-to: #2563eb !important;
+        }
+        .from-yellow-400 {
+          --tw-gradient-from: #facc15 !important;
+        }
+        .via-orange-400 {
+          --tw-gradient-via: #fb923c !important;
+        }
+        .to-red-400 {
+          --tw-gradient-to: #f87171 !important;
+        }
+        .from-green-400 {
+          --tw-gradient-from: #4ade80 !important;
+        }
+        .to-blue-400 {
+          --tw-gradient-to: #60a5fa !important;
+        }
+        .bg-clip-text {
+          -webkit-background-clip: text !important;
+          background-clip: text !important;
+        }
+        .text-transparent {
+          color: transparent !important;
+        }
+        .backdrop-blur-lg {
+          backdrop-filter: blur(8px) !important;
+        }
+        .rounded-lg {
+          border-radius: 0.5rem !important;
+        }
+        .p-6 {
+          padding: 1.5rem !important;
+        }
+        .mb-6 {
+          margin-bottom: 1.5rem !important;
+        }
+        .grid {
+          display: grid !important;
+        }
+        .grid-cols-1 {
+          grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+        }
+        .grid-cols-2 {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+        .gap-4 {
+          gap: 1rem !important;
+        }
+        .gap-6 {
+          gap: 1.5rem !important;
+        }
+        .flex {
+          display: flex !important;
+        }
+        .flex-col {
+          flex-direction: column !important;
+        }
+        .flex-row {
+          flex-direction: row !important;
+        }
+        .justify-between {
+          justify-content: space-between !important;
+        }
+        .justify-center {
+          justify-content: center !important;
+        }
+        .items-center {
+          align-items: center !important;
+        }
+        .text-center {
+          text-align: center !important;
+        }
+        .text-lg {
+          font-size: 1.125rem !important;
+        }
+        .text-2xl {
+          font-size: 1.5rem !important;
+        }
+        .font-semibold {
+          font-weight: 600 !important;
+        }
+        .font-bold {
+          font-weight: 700 !important;
+        }
+        .w-full {
+          width: 100% !important;
+        }
+        .mt-6 {
+          margin-top: 1.5rem !important;
+        }
+        .pt-6 {
+          padding-top: 1.5rem !important;
+        }
+        .border-t {
+          border-top: 1px solid #e5e7eb !important;
+        }
+      `;
+      
+      const styleElement = document.createElement('style');
+      styleElement.textContent = styleFixes;
+      tempContainer.appendChild(styleElement);
+      tempContainer.appendChild(clonedCard);
+      
+      document.body.appendChild(tempContainer);
+      
+      // Dynamically import html2canvas
+      const html2canvas = (await import('html2canvas')).default;
+      
+      const canvas = await html2canvas(tempContainer, {
         scale: 2,
         backgroundColor: '#ffffff',
-        logging: false
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        width: 800,
+        height: tempContainer.scrollHeight,
+        scrollX: 0,
+        scrollY: 0
       });
-    }).then(canvas => {
+      
       // Convert canvas to data URL
-      const image = canvas.toDataURL('image/png');
+      const image = canvas.toDataURL('image/png', 1.0);
       
       // Create download link
       const link = document.createElement('a');
       link.href = image;
-      link.download = `${student.name}_result.png`;
+      link.download = `${student.name.replace(/[^a-zA-Z0-9\u0980-\u09FF]/g, '_')}_result.png`;
+      link.style.display = 'none';
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
       
       // Clean up
       document.body.removeChild(tempContainer);
-    }).catch(err => {
+      
+      // Restore button state
+      if (event?.currentTarget) {
+        event.currentTarget.textContent = originalText;
+        event.currentTarget.disabled = false;
+      }
+      
+    } catch (err) {
       console.error('Error generating image:', err);
-      setError('ছবি ডাউনলোড করতে সমস্যা হয়েছে');
-      document.body.removeChild(tempContainer);
-    });
+      setError('ছবি ডাউনলোড করতে সমস্যা হয়েছে: ' + (err.message || 'Unknown error'));
+      
+      // Restore button state
+      if (event?.currentTarget) {
+        event.currentTarget.textContent = originalText;
+        event.currentTarget.disabled = false;
+      }
+    }
   };
 
   const getGradeColor = (grade: string) => {
