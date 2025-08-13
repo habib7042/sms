@@ -114,7 +114,7 @@ export default function ViewResultsPage() {
         if (data) {
           // Filter results by exam type if selected
           let filteredResults = data.results;
-          if (examType) {
+          if (examType && examType !== 'all') {
             filteredResults = data.results.filter((result: ResultData) => 
               result.examType === examType
             );
@@ -337,7 +337,7 @@ export default function ViewResultsPage() {
                       <SelectValue placeholder="পরীক্ষার ধরন নির্বাচন করুন" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">সকল পরীক্ষা</SelectItem>
+                      <SelectItem value="all">সকল পরীক্ষা</SelectItem>
                       {examTypes.map((type) => (
                         <SelectItem key={type} value={type}>
                           {type}
