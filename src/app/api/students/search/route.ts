@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { calculateGrade, calculateOverallGPA } from '@/lib/gpa-calculation'
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,15 +35,37 @@ export async function GET(request: NextRequest) {
     const transformedStudent = {
       ...student,
       id: student.id, // Keep the original string ID
-      results: student.results.map(result => ({
-        ...result,
-        id: result.id, // Keep the original string ID
-        gradePoint: result.gpa, // Map gpa to gradePoint for frontend
-        marks: Math.round(result.marks) // Round marks to integer
-      }))
+      results: student.results.map(result => {
+        // Recalculate grade and GPA based on subject's maxMarks
+        const maxMarks = result.subject.maxMarks || 100
+        const gradeInfo = calculateGrade(result.marks, maxMarks)
+        
+        return {
+          ...result,
+          id: result.id, // Keep the original string ID
+          gradePoint: gradeInfo.gpa, // Use calculated GPA
+          grade: gradeInfo.grade, // Use calculated grade
+          marks: Math.round(result.marks), // Round marks to integer
+          maxMarks: maxMarks // Include maxMarks for frontend
+        }
+      })
     }
 
-    return NextResponse.json(transformedStudent)
+    // Calculate overall GPA using the new calculation method
+    const overallGPA = calculateOverallGPA(
+      transformedStudent.results.map(result => ({
+        marks: result.marks,
+        maxMarks: result.maxMarks || 100
+      }))
+    )
+
+    // Add overall GPA to the response
+    const responseWithGPA = {
+      ...transformedStudent,
+      overallGPA: parseFloat(overallGPA.toFixed(2))
+    }
+
+    return NextResponse.json(responseWithGPA)
   } catch (error) {
     return NextResponse.json({ error: 'Failed to search student' }, { status: 500 })
   }

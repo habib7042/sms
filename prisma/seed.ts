@@ -80,6 +80,7 @@ async function main() {
         name: 'বাংলা',
         code: 'BAN',
         description: 'Bangla Language',
+        maxMarks: 100,
       },
     }),
     prisma.subject.upsert({
@@ -89,6 +90,7 @@ async function main() {
         name: 'ইংরেজি',
         code: 'ENG',
         description: 'English Language',
+        maxMarks: 100,
       },
     }),
     prisma.subject.upsert({
@@ -98,6 +100,7 @@ async function main() {
         name: 'গণিত',
         code: 'MAT',
         description: 'Mathematics',
+        maxMarks: 100,
       },
     }),
     prisma.subject.upsert({
@@ -107,6 +110,7 @@ async function main() {
         name: 'বিজ্ঞান',
         code: 'SCI',
         description: 'General Science',
+        maxMarks: 50, // 50 marks subject
       },
     }),
     prisma.subject.upsert({
@@ -116,6 +120,7 @@ async function main() {
         name: 'সামাজিক বিজ্ঞান',
         code: 'SOC',
         description: 'Social Science',
+        maxMarks: 50, // 50 marks subject
       },
     }),
     prisma.subject.upsert({
@@ -125,6 +130,7 @@ async function main() {
         name: 'ধর্ম',
         code: 'REL',
         description: 'Religious Studies',
+        maxMarks: 50, // 50 marks subject
       },
     }),
   ]);
@@ -325,6 +331,67 @@ async function main() {
         examDate: new Date('2024-06-17'),
       },
     }),
+    // 50 marks subjects for student 101
+    prisma.result.upsert({
+      where: { 
+        studentId_subjectId_examType: { 
+          studentId: students[0].id, 
+          subjectId: subjects[3].id,
+          examType: 'প্রথম সেমিস্টার'
+        } 
+      },
+      update: {},
+      create: {
+        studentId: students[0].id,
+        subjectId: subjects[3].id,
+        classId: classes[0].id,
+        marks: 45.0, // Out of 50
+        grade: 'A+',
+        gpa: 5.0,
+        examType: 'প্রথম সেমিস্টার',
+        examDate: new Date('2024-06-18'),
+      },
+    }),
+    prisma.result.upsert({
+      where: { 
+        studentId_subjectId_examType: { 
+          studentId: students[0].id, 
+          subjectId: subjects[4].id,
+          examType: 'প্রথম সেমিস্টার'
+        } 
+      },
+      update: {},
+      create: {
+        studentId: students[0].id,
+        subjectId: subjects[4].id,
+        classId: classes[0].id,
+        marks: 38.0, // Out of 50
+        grade: 'A',
+        gpa: 4.0,
+        examType: 'প্রথম সেমিস্টার',
+        examDate: new Date('2024-06-19'),
+      },
+    }),
+    prisma.result.upsert({
+      where: { 
+        studentId_subjectId_examType: { 
+          studentId: students[0].id, 
+          subjectId: subjects[5].id,
+          examType: 'প্রথম সেমিস্টার'
+        } 
+      },
+      update: {},
+      create: {
+        studentId: students[0].id,
+        subjectId: subjects[5].id,
+        classId: classes[0].id,
+        marks: 42.0, // Out of 50
+        grade: 'A+',
+        gpa: 5.0,
+        examType: 'প্রথম সেমিস্টার',
+        examDate: new Date('2024-06-20'),
+      },
+    }),
     // Results for student 102
     prisma.result.upsert({
       where: { 
@@ -364,6 +431,47 @@ async function main() {
         gpa: 3.5,
         examType: 'প্রথম সেমিস্টার',
         examDate: new Date('2024-06-16'),
+      },
+    }),
+    // 50 marks subjects for student 102
+    prisma.result.upsert({
+      where: { 
+        studentId_subjectId_examType: { 
+          studentId: students[1].id, 
+          subjectId: subjects[3].id,
+          examType: 'প্রথম সেমিস্টার'
+        } 
+      },
+      update: {},
+      create: {
+        studentId: students[1].id,
+        subjectId: subjects[3].id,
+        classId: classes[0].id,
+        marks: 40.0, // Out of 50
+        grade: 'A+',
+        gpa: 5.0,
+        examType: 'প্রথম সেমিস্টার',
+        examDate: new Date('2024-06-18'),
+      },
+    }),
+    prisma.result.upsert({
+      where: { 
+        studentId_subjectId_examType: { 
+          studentId: students[1].id, 
+          subjectId: subjects[4].id,
+          examType: 'প্রথম সেমিস্টার'
+        } 
+      },
+      update: {},
+      create: {
+        studentId: students[1].id,
+        subjectId: subjects[4].id,
+        classId: classes[0].id,
+        marks: 35.0, // Out of 50
+        grade: 'A',
+        gpa: 4.0,
+        examType: 'প্রথম সেমিস্টার',
+        examDate: new Date('2024-06-19'),
       },
     }),
   ]);

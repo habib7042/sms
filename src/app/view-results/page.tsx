@@ -47,6 +47,7 @@ interface ResultData {
   gradePoint: number;
   examType: string;
   subject: SubjectData;
+  maxMarks?: number; // Maximum marks for this subject
 }
 
 interface StudentData {
@@ -55,6 +56,7 @@ interface StudentData {
   name: string;
   class: ClassData;
   results: ResultData[];
+  overallGPA?: number; // Overall GPA calculated by API
 }
 
 export default function ViewResultsPage() {
@@ -125,11 +127,16 @@ export default function ViewResultsPage() {
             results: filteredResults
           });
           
-          // Calculate GPA
-          const totalGradePoints = filteredResults.reduce((sum: number, result: ResultData) => sum + result.gradePoint, 0);
-          const totalSubjects = filteredResults.length;
-          const calculatedGpa = totalSubjects > 0 ? totalGradePoints / totalSubjects : 0;
-          setGpa(parseFloat(calculatedGpa.toFixed(2)));
+          // Use overall GPA from API if available, otherwise calculate manually
+          if (data.overallGPA !== undefined) {
+            setGpa(data.overallGPA);
+          } else {
+            // Fallback to manual calculation
+            const totalGradePoints = filteredResults.reduce((sum: number, result: ResultData) => sum + result.gradePoint, 0);
+            const totalSubjects = filteredResults.length;
+            const calculatedGpa = totalSubjects > 0 ? totalGradePoints / totalSubjects : 0;
+            setGpa(parseFloat(calculatedGpa.toFixed(2)));
+          }
         } else {
           setError('কোন শিক্ষার্থী পাওয়া যায়নি');
         }
@@ -387,7 +394,7 @@ export default function ViewResultsPage() {
               </div>
               <div class="info-item">
                 <span class="info-label">মোট নম্বর:</span>
-                <span class="info-value">${student.results.reduce((sum, result) => sum + result.marks, 0)}</span>
+                <span class="info-value">${student.results.reduce((sum, result) => sum + result.marks, 0)}${student.results.some(r => r.maxMarks && r.maxMarks !== 100) ? ' (বিভিন্ন মান)' : ''}</span>
               </div>
             </div>
           </div>
@@ -396,7 +403,7 @@ export default function ViewResultsPage() {
             <thead>
               <tr>
                 <th>বিষয়</th>
-                <th>নম্বর</th>
+                <th>নম্বর${student.results.some(r => r.maxMarks && r.maxMarks !== 100) ? ' (সর্বোচ্চ)' : ''}</th>
                 <th>গ্রেড</th>
                 <th>গ্রেড পয়েন্ট</th>
               </tr>
@@ -405,7 +412,7 @@ export default function ViewResultsPage() {
               ${student.results.map(result => `
                 <tr>
                   <td>${result.subject.name}</td>
-                  <td>${result.marks}</td>
+                  <td>${result.maxMarks && result.maxMarks !== 100 ? `${result.marks}/${result.maxMarks}` : result.marks}</td>
                   <td><span class="grade-${result.grade.toLowerCase().replace('+', '-plus')}">${result.grade}</span></td>
                   <td>${result.gradePoint}</td>
                 </tr>
@@ -686,7 +693,7 @@ export default function ViewResultsPage() {
                             <tr className="bg-white/10">
                               <th className="border border-white/20 px-4 py-3 text-left text-white">বিষয়</th>
                               <th className="border border-white/20 px-4 py-3 text-left text-white">পরীক্ষার ধরন</th>
-                              <th className="border border-white/20 px-4 py-3 text-left text-white">নম্বর</th>
+                              <th className="border border-white/20 px-4 py-3 text-left text-white">নম্বর{student?.results.some(r => r.maxMarks && r.maxMarks !== 100) ? ' (সর্বোচ্চ)' : ''}</th>
                               <th className="border border-white/20 px-4 py-3 text-left text-white">গ্রেড</th>
                               <th className="border border-white/20 px-4 py-3 text-left text-white">গ্রেড পয়েন্ট</th>
                             </tr>
@@ -707,7 +714,9 @@ export default function ViewResultsPage() {
                                     {result.examType}
                                   </Badge>
                                 </td>
-                                <td className="border border-white/20 px-4 py-3 text-white font-semibold">{result.marks}</td>
+                                <td className="border border-white/20 px-4 py-3 text-white font-semibold">
+                                  {result.maxMarks && result.maxMarks !== 100 ? `${result.marks}/${result.maxMarks}` : result.marks}
+                                </td>
                                 <td className="border border-white/20 px-4 py-3 text-white">
                                   <Badge className={getGradeColor(result.grade)}>
                                     {getGradeIcon(result.grade)}
