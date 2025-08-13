@@ -12,7 +12,6 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Search, 
-  Download, 
   ArrowLeft, 
   Filter, 
   BookOpen, 
@@ -27,7 +26,8 @@ import {
   CheckCircle,
   AlertCircle,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Printer
 } from 'lucide-react';
 
 interface ClassData {
@@ -144,225 +144,301 @@ export default function ViewResultsPage() {
     }
   };
 
-  const downloadResult = async (event?: React.MouseEvent<HTMLButtonElement>) => {
+  const printResult = () => {
     if (!student) return;
     
-    const element = document.getElementById('result-card');
-    if (!element) {
-      setError('ফলাফলের কার্ড পাওয়া যায়নি');
-      return;
-    }
+    const printContent = document.getElementById('result-card');
+    if (!printContent) return;
     
-    try {
-      // Show loading state
-      const originalText = event?.currentTarget?.textContent || '';
-      if (event?.currentTarget) {
-        event.currentTarget.textContent = 'প্রস্তুত হচ্ছে...';
-        event.currentTarget.disabled = true;
-      }
-      
-      // Create a temporary container with proper styling
-      const tempContainer = document.createElement('div');
-      tempContainer.style.position = 'absolute';
-      tempContainer.style.left = '-9999px';
-      tempContainer.style.width = '800px';
-      tempContainer.style.backgroundColor = '#ffffff';
-      tempContainer.style.fontFamily = 'Arial, sans-serif';
-      tempContainer.style.padding = '20px';
-      tempContainer.style.boxSizing = 'border-box';
-      
-      // Clone the result card
-      const clonedCard = element.cloneNode(true) as HTMLElement;
-      
-      // Remove interactive elements and animations that might cause issues
-      const interactiveElements = clonedCard.querySelectorAll('button, .tabs, .tab-list, input, select');
-      interactiveElements.forEach(el => el.remove());
-      
-      // Remove animation classes
-      const animatedElements = clonedCard.querySelectorAll('[class*="animate-"], [class*="motion-"]');
-      animatedElements.forEach(el => {
-        el.className = el.className.replace(/animate-\w+|motion-\w+/g, '');
-      });
-      
-      // Fix background colors and text colors
-      const styleFixes = `
-        * {
-          box-sizing: border-box !important;
-        }
-        .bg-primary, .bg-blue-600, .bg-purple-600 {
-          background-color: #3b82f6 !important;
-          color: #ffffff !important;
-        }
-        .bg-white\\/10 {
-          background-color: rgba(255, 255, 255, 0.1) !important;
-        }
-        .text-white {
-          color: #ffffff !important;
-        }
-        .text-blue-200, .text-blue-100 {
-          color: #e0e7ff !important;
-        }
-        .border-white\\/20 {
-          border-color: rgba(255, 255, 255, 0.2) !important;
-        }
-        .bg-gradient-to-r {
-          background: linear-gradient(to right, var(--tw-gradient-stops)) !important;
-        }
-        .from-purple-600 {
-          --tw-gradient-from: #9333ea !important;
-        }
-        .to-blue-600 {
-          --tw-gradient-to: #2563eb !important;
-        }
-        .from-yellow-400 {
-          --tw-gradient-from: #facc15 !important;
-        }
-        .via-orange-400 {
-          --tw-gradient-via: #fb923c !important;
-        }
-        .to-red-400 {
-          --tw-gradient-to: #f87171 !important;
-        }
-        .from-green-400 {
-          --tw-gradient-from: #4ade80 !important;
-        }
-        .to-blue-400 {
-          --tw-gradient-to: #60a5fa !important;
-        }
-        .bg-clip-text {
-          -webkit-background-clip: text !important;
-          background-clip: text !important;
-        }
-        .text-transparent {
-          color: transparent !important;
-        }
-        .backdrop-blur-lg {
-          backdrop-filter: blur(8px) !important;
-        }
-        .rounded-lg {
-          border-radius: 0.5rem !important;
-        }
-        .p-6 {
-          padding: 1.5rem !important;
-        }
-        .mb-6 {
-          margin-bottom: 1.5rem !important;
-        }
-        .grid {
-          display: grid !important;
-        }
-        .grid-cols-1 {
-          grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-        }
-        .grid-cols-2 {
-          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        }
-        .gap-4 {
-          gap: 1rem !important;
-        }
-        .gap-6 {
-          gap: 1.5rem !important;
-        }
-        .flex {
-          display: flex !important;
-        }
-        .flex-col {
-          flex-direction: column !important;
-        }
-        .flex-row {
-          flex-direction: row !important;
-        }
-        .justify-between {
-          justify-content: space-between !important;
-        }
-        .justify-center {
-          justify-content: center !important;
-        }
-        .items-center {
-          align-items: center !important;
-        }
-        .text-center {
-          text-align: center !important;
-        }
-        .text-lg {
-          font-size: 1.125rem !important;
-        }
-        .text-2xl {
-          font-size: 1.5rem !important;
-        }
-        .font-semibold {
-          font-weight: 600 !important;
-        }
-        .font-bold {
-          font-weight: 700 !important;
-        }
-        .w-full {
-          width: 100% !important;
-        }
-        .mt-6 {
-          margin-top: 1.5rem !important;
-        }
-        .pt-6 {
-          padding-top: 1.5rem !important;
-        }
-        .border-t {
-          border-top: 1px solid #e5e7eb !important;
-        }
-      `;
-      
-      const styleElement = document.createElement('style');
-      styleElement.textContent = styleFixes;
-      tempContainer.appendChild(styleElement);
-      tempContainer.appendChild(clonedCard);
-      
-      document.body.appendChild(tempContainer);
-      
-      // Dynamically import html2canvas
-      const html2canvas = (await import('html2canvas')).default;
-      
-      const canvas = await html2canvas(tempContainer, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        logging: false,
-        useCORS: true,
-        allowTaint: true,
-        width: 800,
-        height: tempContainer.scrollHeight,
-        scrollX: 0,
-        scrollY: 0
-      });
-      
-      // Convert canvas to data URL
-      const image = canvas.toDataURL('image/png', 1.0);
-      
-      // Create download link
-      const link = document.createElement('a');
-      link.href = image;
-      link.download = `${student.name.replace(/[^a-zA-Z0-9\u0980-\u09FF]/g, '_')}_result.png`;
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Clean up
-      document.body.removeChild(tempContainer);
-      
-      // Restore button state
-      if (event?.currentTarget) {
-        event.currentTarget.textContent = originalText;
-        event.currentTarget.disabled = false;
-      }
-      
-    } catch (err) {
-      console.error('Error generating image:', err);
-      setError('ছবি ডাউনলোড করতে সমস্যা হয়েছে: ' + (err.message || 'Unknown error'));
-      
-      // Restore button state
-      if (event?.currentTarget) {
-        event.currentTarget.textContent = originalText;
-        event.currentTarget.disabled = false;
-      }
-    }
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    // Create print-friendly HTML
+    const printHTML = `
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>শিক্ষার্থীর ফলাফল - ${student.name}</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700&display=swap');
+          
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+          }
+          
+          body {
+            font-family: 'Noto Sans Bengali', Arial, sans-serif;
+            background: white;
+            color: #333;
+            line-height: 1.6;
+          }
+          
+          .print-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+          }
+          
+          .school-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+          }
+          
+          .title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+          }
+          
+          .subtitle {
+            font-size: 16px;
+            color: #666;
+          }
+          
+          .student-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+          }
+          
+          .info-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f9f9f9;
+          }
+          
+          .info-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 8px;
+          }
+          
+          .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+          }
+          
+          .info-label {
+            font-weight: 600;
+            color: #555;
+          }
+          
+          .info-value {
+            color: #333;
+          }
+          
+          .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+          }
+          
+          .results-table th,
+          .results-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+          }
+          
+          .results-table th {
+            background: #333;
+            color: white;
+            font-weight: 600;
+          }
+          
+          .results-table tr:nth-child(even) {
+            background: #f9f9f9;
+          }
+          
+          .grade-a-plus { background: #22c55e; color: white; }
+          .grade-a { background: #3b82f6; color: white; }
+          .grade-a-minus { background: #6366f1; color: white; }
+          .grade-b { background: #8b5cf6; color: white; }
+          .grade-c { background: #eab308; color: white; }
+          .grade-d { background: #f97316; color: white; }
+          .grade-f { background: #ef4444; color: white; }
+          
+          .gpa-section {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: #f0f0f0;
+          }
+          
+          .gpa-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+          }
+          
+          .gpa-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1a1a1a;
+          }
+          
+          .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 14px;
+          }
+          
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+            }
+            
+            .print-container {
+              margin: 0;
+              padding: 15px;
+            }
+            
+            .no-print {
+              display: none !important;
+            }
+          }
+          
+          @media (max-width: 600px) {
+            .student-info {
+              grid-template-columns: 1fr;
+            }
+            
+            .results-table {
+              font-size: 12px;
+            }
+            
+            .results-table th,
+            .results-table td {
+              padding: 8px;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="print-container">
+          <div class="header">
+            <div class="school-name">Noakhali Ideal Madrasah</div>
+            <div class="title">পরীক্ষার ফলাফল</div>
+            <div class="subtitle">Examination Result</div>
+          </div>
+          
+          <div class="student-info">
+            <div class="info-card">
+              <div class="info-title">শিক্ষার্থীর তথ্য</div>
+              <div class="info-item">
+                <span class="info-label">নাম:</span>
+                <span class="info-value">${student.name}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">রোল নম্বর:</span>
+                <span class="info-value">${student.roll}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">শ্রেণী:</span>
+                <span class="info-value">${student.class.name}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">লিঙ্গ:</span>
+                <span class="info-value">${student.gender === 'Male' ? 'পুরুষ' : student.gender === 'Female' ? 'মহিলা' : student.gender}</span>
+              </div>
+            </div>
+            
+            <div class="info-card">
+              <div class="info-title">পরীক্ষার তথ্য</div>
+              <div class="info-item">
+                <span class="info-label">পরীক্ষার ধরন:</span>
+                <span class="info-value">${examType || 'সকল পরীক্ষা'}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">তারিখ:</span>
+                <span class="info-value">${new Date().toLocaleDateString('bn-BD')}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">মোট বিষয়:</span>
+                <span class="info-value">${student.results.length}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">মোট নম্বর:</span>
+                <span class="info-value">${student.results.reduce((sum, result) => sum + result.marks, 0)}</span>
+              </div>
+            </div>
+          </div>
+          
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>বিষয়</th>
+                <th>নম্বর</th>
+                <th>গ্রেড</th>
+                <th>গ্রেড পয়েন্ট</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${student.results.map(result => `
+                <tr>
+                  <td>${result.subject.name}</td>
+                  <td>${result.marks}</td>
+                  <td><span class="grade-${result.grade.toLowerCase().replace('+', '-plus')}">${result.grade}</span></td>
+                  <td>${result.gradePoint}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          
+          <div class="gpa-section">
+            <div class="gpa-label">জিপিএ (GPA)</div>
+            <div class="gpa-value">${gpa !== null ? gpa.toFixed(2) : 'N/A'}</div>
+          </div>
+          
+          <div class="footer">
+            <p>© 2024 Noakhali Ideal Madrasah. All rights reserved.</p>
+            <p>Generated on: ${new Date().toLocaleString('bn-BD')}</p>
+          </div>
+        </div>
+        
+        <script>
+          // Auto print when page loads
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              window.close();
+            }, 500);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+    
+    printWindow.document.write(printHTML);
+    printWindow.document.close();
   };
 
   const getGradeColor = (grade: string) => {
@@ -735,11 +811,11 @@ export default function ViewResultsPage() {
                 {student.results.length > 0 && (
                   <div className="mt-6 flex justify-center">
                     <Button 
-                      onClick={downloadResult} 
+                      onClick={printResult} 
                       className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-3 px-6 group"
                     >
-                      <Download className="mr-2 h-5 w-5" />
-                      PNG হিসেবে ডাউনলোড করুন
+                      <Printer className="mr-2 h-5 w-5" />
+                      প্রিন্ট করুন
                       <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </div>
