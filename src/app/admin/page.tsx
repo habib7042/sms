@@ -43,7 +43,8 @@ export default function AdminDashboard() {
   const [newSubject, setNewSubject] = useState({
     name: '',
     code: '',
-    description: ''
+    description: '',
+    maxMarks: 100 // Default to 100 marks
   })
 
   const [newResult, setNewResult] = useState({
@@ -161,7 +162,7 @@ export default function AdminDashboard() {
       
       if (response.ok) {
         setMessage({ type: 'success', text: 'Subject added successfully' })
-        setNewSubject({ name: '', code: '', description: '' })
+        setNewSubject({ name: '', code: '', description: '', maxMarks: 100 })
         fetchData()
       }
     } catch (error) {
@@ -636,6 +637,18 @@ export default function AdminDashboard() {
                       onChange={(e) => setNewSubject({...newSubject, description: e.target.value})}
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="maxMarks">সর্বোচ্চ নম্বর</Label>
+                    <Select onValueChange={(value) => setNewSubject({...newSubject, maxMarks: parseInt(value)})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select max marks" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="100">১০০</SelectItem>
+                        <SelectItem value="50">৫০</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <Button type="submit">বিষয় যোগ করুন</Button>
                 </form>
               </CardContent>
@@ -652,6 +665,7 @@ export default function AdminDashboard() {
                       <TableHead>বিষয়</TableHead>
                       <TableHead>কোড</TableHead>
                       <TableHead>বর্ণনা</TableHead>
+                      <TableHead>সর্বোচ্চ নম্বর</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -660,6 +674,11 @@ export default function AdminDashboard() {
                         <TableCell>{subject.name}</TableCell>
                         <TableCell>{subject.code}</TableCell>
                         <TableCell>{subject.description}</TableCell>
+                        <TableCell>
+                          <Badge variant={subject.maxMarks === 50 ? 'secondary' : 'default'}>
+                            {subject.maxMarks}
+                          </Badge>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -700,7 +719,7 @@ export default function AdminDashboard() {
                       <SelectContent>
                         {subjects.map((subject) => (
                           <SelectItem key={subject.id} value={subject.id}>
-                            {subject.name}
+                            {subject.name} ({subject.maxMarks})
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -725,11 +744,16 @@ export default function AdminDashboard() {
                       id="marks"
                       type="number"
                       min="0"
-                      max="100"
+                      max={newResult.subjectId ? subjects.find(s => s.id === newResult.subjectId)?.maxMarks || 100 : 100}
                       value={newResult.marks}
                       onChange={(e) => setNewResult({...newResult, marks: e.target.value})}
                       required
                     />
+                    {newResult.subjectId && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        সর্বোচ্চ নম্বর: {subjects.find(s => s.id === newResult.subjectId)?.maxMarks || 100}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="examType">পরীক্ষার ধরন</Label>
@@ -808,7 +832,9 @@ export default function AdminDashboard() {
                         <TableCell>{result.student?.name}</TableCell>
                         <TableCell>{result.class?.name}</TableCell>
                         <TableCell>{result.subject?.name}</TableCell>
-                        <TableCell>{result.marks}</TableCell>
+                        <TableCell>
+                          {result.marks}{result.subject?.maxMarks && result.subject.maxMarks !== 100 ? `/${result.subject.maxMarks}` : ''}
+                        </TableCell>
                         <TableCell>
                           <Badge variant={
                             result.grade === 'A+' ? 'default' :

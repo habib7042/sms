@@ -29,7 +29,8 @@ export async function POST(request: NextRequest) {
       data: {
         name: body.name,
         code: body.code,
-        description: body.description
+        description: body.description,
+        maxMarks: body.maxMarks || 100 // Default to 100 if not provided
       }
     })
     
