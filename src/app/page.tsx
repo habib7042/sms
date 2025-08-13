@@ -328,7 +328,7 @@ export default function Home() {
           transition={{ duration: 1, delay: 1 }}
         >
           <p>© 2024 Noakhali Ideal Madrasah. All rights reserved.</p>
-          <p className="text-sm mt-2">Powered by Modern School Management System</p>
+          <p className="text-sm mt-2">Powered by Modern School Management System - Vercel Build Fixed</p>
         </motion.div>
       </footer>
 
