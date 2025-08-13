@@ -17,7 +17,12 @@ export async function GET(request: NextRequest) {
         classId: classId
       },
       include: {
-        class: true
+        class: true,
+        results: {
+          include: {
+            subject: true
+          }
+        }
       }
     })
 
@@ -25,7 +30,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 })
     }
 
-    return NextResponse.json(student)
+    // Transform the data to match frontend expectations
+    const transformedStudent = {
+      ...student,
+      id: student.id, // Keep the original string ID
+      results: student.results.map(result => ({
+        ...result,
+        id: result.id, // Keep the original string ID
+        gradePoint: result.gpa, // Map gpa to gradePoint for frontend
+        marks: Math.round(result.marks) // Round marks to integer
+      }))
+    }
+
+    return NextResponse.json(transformedStudent)
   } catch (error) {
     return NextResponse.json({ error: 'Failed to search student' }, { status: 500 })
   }

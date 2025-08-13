@@ -31,17 +31,17 @@ import {
 } from 'lucide-react';
 
 interface ClassData {
-  id: number;
+  id: string;
   name: string;
 }
 
 interface SubjectData {
-  id: number;
+  id: string;
   name: string;
 }
 
 interface ResultData {
-  id: number;
+  id: string;
   marks: number;
   grade: string;
   gradePoint: number;
@@ -50,7 +50,7 @@ interface ResultData {
 }
 
 interface StudentData {
-  id: number;
+  id: string;
   roll: string;
   name: string;
   class: ClassData;
