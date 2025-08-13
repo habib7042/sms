@@ -2,6 +2,7 @@
   "name": "nextjs_tailwind_shadcn_ts",
   "version": "0.1.0",
   "private": true,
+  "description": "Student Management System with 50-mark subjects support",
   "scripts": {
     "dev": "nodemon --exec \"npx tsx server.ts\" --watch server.ts --watch src --ext ts,tsx,js,jsx 2>&1 | tee dev.log",
     "build": "prisma generate && next build",
