@@ -1,0 +1,96 @@
+// This is your Prisma schema file for PostgreSQL,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://neondb_owner:npg_0YAPoUMWLRV7@ep-muddy-star-a1fxuehu-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Class {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  students    Student[]
+  subjects    ClassSubject[]
+  results     Result[]
+}
+
+model Subject {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  description String?
+  maxMarks    Int      @default(100) // Maximum marks for this subject (100 or 50)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  classes     ClassSubject[]
+  results     Result[]
+}
+
+model ClassSubject {
+  id        String   @id @default(cuid())
+  classId   String
+  subjectId String
+  createdAt DateTime @default(now())
+  
+  class     Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  
+  @@unique([classId, subjectId])
+}
+
+model Student {
+  id          String   @id @default(cuid())
+  roll        String
+  name        String
+  fatherName  String?
+  motherName  String?
+  dateOfBirth DateTime?
+  gender      String?
+  address     String?
+  phone       String?
+  classId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  results     Result[]
+  
+  @@unique([roll, classId])
+}
+
+model Result {
+  id         String   @id @default(cuid())
+  studentId  String
+  subjectId  String
+  classId    String
+  marks      Float
+  grade      String
+  gpa        Float
+  examType   String   // e.g., "Final", "Midterm", "Test"
+  examDate   DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject    Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  class      Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  
+  @@unique([studentId, subjectId, examType])
+}
